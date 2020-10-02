@@ -1,388 +1,394 @@
 <template>
-  <div>
-    <h1>Settings</h1>
+  <div class="palette">
+    <h1 class="palette">Settings</h1>
     <div class="settings-container">
-      <div class="name-area">
-        <div class="name-div">
-          {{ current_user.first_name }} {{ current_user.last_name }}
-        </div>
-        <div class="logout-div">
-          <div
-            class="logout-button"
-            v-on:click="logoutUser"
-            tabindex="0"
-            role="button"
-          >
-            Logout
-          </div>
-        </div>
-        <div class="logout-div">
-          <div
-            class="logout-button"
-            v-on:click="saveChanges"
-            tabindex="0"
-            role="button"
-          >
-            Save Changes
-          </div>
-        </div>
-      </div>
-
-      <div v-if="mode == 'setting_options'">
-        <div class="setting-option-section">
-          <div class="left">
-            <div>
-              Current Email:
-              <span class="value-area">{{ current_user.email }}</span>
-            </div>
-            <div class="small-div">The email is used to login to Venue.</div>
-          </div>
-          <div class="right">
-            <div class="test-div">This is a test</div>
-            <!-- <div class="change-button">Change</div> -->
-          </div>
-        </div>
-        <div class="setting-option-section">
-          <div class="left">
-            <div>
-              Dark mode
-            </div>
-          </div>
-          <div class="right">
-            <label class="dark-mode-switch">
-              <div v-if="this.switch == 'true' || this.current_user.dark_mode">
-                <input type="checkbox" v-on:click="toggleDarkMode()" checked>
-                <span class="dark-mode-slider"></span>
-              </div>
+          <div class="name-area">
+            <div class="name-div" v-if="editing_name">
+              <input v-model="edited_first_name" :placeholder="current_user.first_name"/>
+              <input v-model="edited_last_name" :placeholder="current_user.last_name"/>
+              <button v-if="waiting" class="btn btn-primary" disabled><SquareLoader/></button>
               <div v-else>
-                <input type="checkbox" v-on:click="toggleDarkMode()">
-                <span class="dark-mode-slider"></span>
+                <button class="btn btn-secondary" @click="editing_name = false">Cancel</button>
               </div>
-            </label>
-            <!-- PRINTING VARIABLES OUT FOR TESTING -->
-            <div>this.current_user.dark_mode: {{ this.current_user.dark_mode }}</div>
-            <div>state.dark_mode: {{ this.$store.state.dark_mode }}</div>
-            <div>switch: {{ this.switch }}</div>
+            </div>
+            <div class="name-div" v-else>{{ current_user.first_name }} {{ current_user.last_name }} <button class="btn" title="Edit Course" id="edit-course" @click="editing_name = true"><img id="edit-course" src="@/assets/icons8-edit.svg" alt="Edit" width="40" aria-label="Edit"/></button></div>
+            <div class="logout-div"><div class="logout-button" v-on:click="logoutUser" tabindex="0" role="button">Logout</div></div>
           </div>
-        </div>
-      </div>
 
-      <div class="setting-option-section">
-        <div class="left">
-          <div>Current Password: <span class="value-area">{{ this.current_user.password }}</span></div>
-              <div class="small-div">The password is the key to your Venue account.</div>
+          <div v-if="mode == 'setting_options'">
+
+            <div class="setting-option-section">
+                <div class="left">
+                    <div>Current Email: <span class="value-area">{{ current_user.email }}</span></div>
+                    <div class="small-div">The email is used to login to Venue.</div>
                 </div>
                 <div class="right">
-              <div class="change-button" v-on:click="mode = 'change_password'">Change</div>
+                    <!-- <div class="change-button">Change</div> -->
+                </div>
             </div>
-          </div> 
-      </div>
 
-      <!-- Setting Actions -->
-      <div v-else:>
-        <ChangePassword
-          v-if="mode == 'change_password'"
-          :current_user="current_user"
-          :complete="actionComplete"
-        />
-      </div>
+          <div class="setting-option-section">
+            <div class="left">
+              <div>
+                Dark mode
+              </div>
+            </div>
+
+            <div class="right">
+              <label class="dark-mode-switch">
+                <div v-if="this.edited_dark_mode">
+                  <input type="checkbox" v-on:click="toggleDarkMode()" checked>
+                  <span class="dark-mode-slider"></span>
+                </div>
+                <div v-else>
+                  <input type="checkbox" v-on:click="toggleDarkMode()">
+                  <span class="dark-mode-slider"></span>
+                </div>
+              </label>
+            <!-- PRINTING VARIABLES OUT FOR TESTING
+            <div>this.current_user.first_name: {{ this.current_user.first_name }}</div>
+            <div>edited_first_name: {{ this.edited_first_name }}</div> -->
+          </div>
+
+          <div style="position:relative" class="setting-option-section">
+              <div class="left"></div>
+              <div style="position:absolute" class="right">
+                <button class="btn btn-primary" @click="saveName()">Save Changes</button>
+              </div>
+          </div>
+
+        </div>
+          
+        <!--<div class="test-div">
+          test
+        </div> -->
+
+            <div style="position:relative" class="setting-option-section">
+                <div class="left" style="position:absolute">
+                    <router-link :to="{name: 'teach_new_course'}"><button class="btn btn-primary">Teach New Course</button></router-link>
+                </div>
+                <div class="right">
+                    <!-- <div class="change-button">Change</div> -->
+                </div>
+            </div>
+
+<!--             <div class="setting-option-section">
+                <div class="left">
+                    <div>Current Password: <span class="value-area">*********</span></div>
+                    <div class="small-div">The password is the key to your Venue account.</div>
+                </div>
+                <div class="right">
+                    <div class="change-button" v-on:click="mode = 'change_password'">Change</div>
+                </div>
+            </div> -->
+
+          </div>
+
+          <!-- Setting Actions -->
+          <div v-else>
+            <ChangePassword v-if="mode == 'change_password'" :current_user="current_user" :complete="actionComplete" />
+          </div>
     </div>
+
+  </div>
 </template>
 
 <script>
-import UserAPI from "@/services/UserAPI.js";
-import { authComputed } from "../vuex/helpers.js";
-import { showAt, hideAt } from "vue-breakpoints";
-import ChangePassword from "@/components/ChangePassword.vue";
-import AuthAPI from "../services/AuthAPI";
+  import UserAPI from '@/services/UserAPI.js';
+  import { authComputed } from '../vuex/helpers.js'
+  import {showAt, hideAt} from 'vue-breakpoints'
+  import ChangePassword from '@/components/ChangePassword.vue'
+  import AuthAPI from '../services/AuthAPI';
+  //import PaletteAPI from '../services/PaletteAPI';
 
-import LectureSubmissionAPI from "@/services/LectureSubmissionAPI.js";
+  import SquareLoader from '@/components/Loaders/SquareLoader.vue';
 
-export default {
-  name: "Dashboard",
-  computed: {
-    ...authComputed
-  },
-  components: {
-    hideAt,
-    showAt,
-    ChangePassword
-  },
-  data() {
-    return {
-      current_user: {},
-      mode: String,
-      switch: Boolean
-    };
-  },
-  created() {
-    this.mode = "setting_options";
-    this.getCurrentUser();
-    this.switchPosition();
-    this.syncUpBooleans();
-    this.dark_mode_style();
-  },
-  methods: {
-    getCurrentUser() {
-      this.current_user = this.$store.state.user.current_user;
+  import LectureSubmissionAPI from '@/services/LectureSubmissionAPI.js'
+
+  export default {
+    name: 'Dashboard',
+    computed: {
+      ...authComputed
     },
-    switchPosition() {
-      this.switch = this.$store.state.dark_mode;
-      return this.switch;
+    components: {
+      hideAt,
+      showAt,
+      ChangePassword,
+      SquareLoader
     },
-    syncUpBooleans() {
-      if (this.switch == 'true') {
-        this.current_user.dark_mode = true;
-      } else if (this.switch == 'false') {
-        this.current_user.dark_mode = false;
-      } else {
-        this.current_user.dark_mode = this.current_user.dark_mode;
+    data(){
+      return {
+        current_user: {},
+        mode: String,
+        editing_name: false,
+        edited_first_name: '',
+        edited_last_name: '',
+        edited_dark_mode: false,
+        waiting: false
       }
     },
-    dark_mode_style() {
+    created() {
+      this.mode = "setting_options"
+      this.getCurrentUser()
+      //this.setPalette()
+    },
+    methods: {
+      getCurrentUser() {
+        this.current_user = this.$store.state.user.current_user
+        this.edited_dark_mode = this.$store.state.user.current_user.dark_mode
+        this.edited_first_name = this.$store.state.user.current_user.first_name
+        this.edited_last_name = this.$store.state.user.current_user.last_name
+      },
+      actionComplete () {
+        this.mode = "setting_options";
+      },
+      logoutUser() {
+        AuthAPI.logoutCAS().then(res => {
+          this.$store.dispatch('logout')
+        })
+      },
+      handleUpdateSubmissions() {
+        LectureSubmissionAPI.updateAllToNewModel()
+        .then(res => {
+          location.reload()
+        })
+      },
+      toggleDarkMode() {
+        this.edited_dark_mode = !this.edited_dark_mode;
+      },
+      /*setPalette() {
       let root = document.documentElement;
-      if (this.switch == 'true' || this.current_user.dark_mode) {
-        root.style.setProperty('--white', '#00ff00');
-      } else {
-        root.style.setProperty('--white', '#ff00ff');
+      PaletteAPI.setPalette(root, this.current_user.dark_mode)
+    }, */
+    async saveName() {
+        this.waiting = true
+        this.current_user.first_name = this.edited_first_name
+        this.current_user.last_name = this.edited_last_name
+        this.current_user.dark_mode = this.edited_dark_mode
+        await UserAPI.updateUser(this.current_user._id,this.current_user).then(res => {
+          this.$store.dispatch('updateCurrentUser',{token: this.$store.state.user.token, current_user: this.current_user})
+          this.edited_dark_mode = this.$store.state.user.current_user.dark_mode
+          this.edited_first_name = this.$store.state.user.current_user.first_name
+          this.edited_last_name = this.$store.state.user.current_user.last_name
+          this.waiting = false
+          this.editing_name = false
+        })
+        location.reload()
       }
-    },
-    actionComplete() {
-      this.mode = "setting_options";
-    },
-    logoutUser() {
-      AuthAPI.logoutCAS().then(res => {
-        this.$store.dispatch("logout");
-      });
-    },
-    handleUpdateSubmissions() {
-      LectureSubmissionAPI.updateAllToNewModel().then(res => {
-        location.reload();
-      });
-    },
-    toggleDarkMode() {
-      /*if (this.current_user.dark_mode == false && switch_pos == 'off') {
-        this.current_user.dark_mode = !this.current_user.dark_mode;
-      } else if (this.current_user.dark_mode == false && switch_pos == 'on' && this.sync == 0) {
-        this.current_user.dark_mode = false;
-        this.sync = 1;
-      } else if (this.current_user.dark_mode == true && switch_pos == 'on') {
-        this.current_user.dark_mode = !this.current_user.dark_mode;
-      } else if (this.current_user.dark_mode == true && switch_pos == 'off' && this.sync == 0) {
-        this.current_user.dark_mode = true;
-        this.sync = 1;
-      } else {
-        this.current_user.dark_mode = !this.current_user.dark_mode;
-      } */
-      this.current_user.dark_mode = !this.current_user.dark_mode;
-    },
-    saveChanges() {
-      //this.$store.commit('agreePrivacyPolicy', this.example_bool);
-      //this.current_user = UserAPI.updateSettings(this.current_user);
-
-      UserAPI.updateSettings(this.current_user);
-      this.$store.commit('UPDATE_SETTINGS', this.current_user.dark_mode);
-
     }
   }
-};
 </script>
 
 <style>
-:root {
-  --white: #ffffff;
-}
 
-.test-div {
-  color: var(--white);
-  background-color:green;
-  text-align: left;
-  padding: 15px;
-  display: inline-block;
-}
+    :root {
+      --settings-logout-button: rgb(207,39,41);
+      --settings-logout-button-shadow: rgba(144, 62, 80, 1);
 
-.settings-container {
-  margin: 80px 6rem 0px 6rem;
-  text-align: left;
-}
+      --settings-text: #517B94;
+      --settings-small-div: rgba(0, 0, 0, 0.64);
+    }
 
-.settings-links {
-  width: 15%;
-}
+    .palette {
+      background-color: var(--main-background-color);
+      color: var(--settings-text);
+      position: relative;
+      font-weight: bold;
+    }
 
-.settings-links,
-.settings-body {
-  display: inline-block;
-  vertical-align: top;
-}
+    .settings-container {
+      background-color: var(--main-background-color);
+      margin: 80px 6rem 0px 6rem;
+      text-align: left;
+      background: var(--main-background-color);
+    }
 
-.settings-links ul li {
-  list-style: none;
-  color: #517b94;
-  margin-bottom: 5px;
-  width: 80%;
-  height: 30px;
-  line-height: 30px;
-  text-align: right;
-  box-sizing: border-box;
-  padding-right: 10px;
-  border-radius: 5px;
-  cursor: pointer;
-}
+    .settings-links {
+        width: 15%;
+    }
 
-.settings-links ul li.active {
-  background-color: #517b94;
-  color: white;
-}
+    .settings-links, .settings-body {
+        display: inline-block;
+        vertical-align: top;
+    }
 
-.name-area {
-  font-size: 2rem;
-  /* margin-bottom: 40px; */
-}
+    .settings-links ul li {
+        list-style: none;
+        color: var(--settings-text);
+        margin-bottom: 5px;
+        width: 80%;
+        height: 30px;
+        line-height: 30px;
+        text-align: right;
+        box-sizing: border-box;
+        padding-right: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
 
-.name-area .name-div {
-  width: 75%;
-  min-width: 300px;
-}
+    .settings-links ul li.active {
+        background-color: var(--settings-text);
+        color: var(--main-text-color);
+    }
 
-.name-area .logout-div {
-  text-align: right;
-  width: 24%;
-}
+    .name-area {
+        font-size: 2rem;
+        /* margin-bottom: 40px; */
+    }
 
-.name-area .logout-div .logout-button {
-  font-size: 0.9rem;
-  width: 150px;
-  text-align: center;
-  height: 35px;
-  line-height: 30px;
-  border: 3px solid rgb(207, 39, 41);
-  border-radius: 4px;
-  box-shadow: 0px 3px 5px rgba(252, 111, 113, 0.3);
-  background-color: white;
-  transition: background 0.25s, color 0.25s;
-  font-weight: bold;
-  color: rgb(207, 39, 41);
-  /* background-color: #FC6F71; */
-  cursor: pointer;
-}
+    .name-area .name-div {
+        width: 75%;
+        min-width: 300px;
+    }
 
-.name-area .logout-div .logout-button:hover,
-.name-area .logout-div .logout-button:focus {
-  background-color: rgb(207, 39, 41);
-  color: white;
-}
+    .name-area .logout-div {
+      text-align: right;
+      width: 24%;
+    }
 
-.name-area .name-div,
-.name-area .logout-div {
-  display: inline-block;
-  vertical-align: top;
-}
+    .name-area .logout-div .logout-button {
+        font-size: 0.9rem;
+        width: 150px;
+        text-align: center;
+        height: 35px;
+        line-height: 30px;
+        border: 3px solid var(--settings-logout-button); 
+        border-radius: 4px;
+        box-shadow: 0px 3px 5px var(--settings-logout-button-shadow);
+        background-color: var(--main-background-color);
+        transition: background 0.25s, color 0.25s;
+        font-weight: bold;
+        color: var(--settings-logout-button);
+        /* background-color: #FC6F71; */
+        cursor: pointer;
+    }
 
-.setting-option-section {
-  padding: 30px 15px;
-}
+    .name-area .logout-div .logout-button:hover,
+    .name-area .logout-div .logout-button:focus {
+      background-color: var(--settings-logout-button);
+      color: white;
+      outline: none;
+    }
 
-.value-area {
-  font-weight: italic;
-}
+    .name-area .name-div, .name-area .logout-div {
+        display: inline-block;
+        vertical-align: top;
+    }
 
-.setting-option-section .left,
-.setting-option-section .right {
-  display: inline-block;
-  vertical-align: top;
-}
+    .setting-option-section {
+        padding: 30px 15px;
+        background-color: var(--main-background-color);
+        color: var(--main-text-color);
+        background: var(--main-background-color);
+    }
 
-.setting-option-section .left {
-  width: 70%;
-  min-width: 300px;
-}
-.setting-option-section .right {
-  width: 25%;
-  text-align: right;
-}
+    .value-area {
+        font-weight: italic;
+    }
 
-.small-div {
-  font-size: 0.9rem;
-  color: rgba(0, 0, 0, 0.64);
-  padding-left: 10px;
-}
+    .setting-option-section .left, .setting-option-section .right {
+        display: inline-block;
+        vertical-align: top;
+    }
 
-.change-button {
-  background-color: white;
-  border: 3px solid rgba(44, 62, 80, 1);
-  color: rgb(44, 62, 80);
-  font-weight: bold;
-  display: inline-block;
-  width: 100px;
-  text-align: center;
-  height: 40px;
-  line-height: 37px;
-  border-radius: 3px;
-  cursor: pointer;
-  transition: background-color 0.25s, color 0.25s, box-shadow 0.25s,
-    border 0.25s;
-  box-shadow: 0px 2px 5px rgba(44, 62, 80, 0.1);
-}
+    .setting-option-section .left {
+        width: 70%;
+        min-width: 300px;
+    }
+    .setting-option-section .right {
+        width: 25%;
+        text-align: right;
+    }
 
-.change-button:hover {
-  background-color: rgb(207, 39, 41);
-  color: white;
-  box-shadow: 0px 0px 10px 5px rgba(252, 111, 113, 0.2);
-  border: 3px solid rgb(207, 39, 41);
-}
+    .small-div {
+        font-size: 0.9rem;
+        color: var(--settings-small-div);
+        padding-left: 10px;
+    }
 
-.dark-mode-switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-}
+    .change-button {
+        background-color: var(--main-background-color);
+        border: 3px solid var(--settings-logout-button-shadow);
+        color: var(--settings-logout-button-shadow);
+        font-weight: bold;
+        display: inline-block;
+        width: 100px;
+        text-align: center;
+        height: 40px;
+        line-height: 37px;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: background-color 0.25s, color 0.25s, box-shadow 0.25s, border 0.25s;
+        box-shadow: 0px 2px 5px var(--settings-logout-button-shadow);
+    }
 
-.dark-mode-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
+    .change-button:hover {
+        background-color: var(--settings-logout-button);
+        color: var(--main-text-color);
+        box-shadow: 0px 0px 10px 5px var(--settings-logout-button-shadow);
+        border: 3px solid var(--settings-logout-button);
+    }
 
-.dark-mode-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc; 
-  -webkit-transition: .4s;
-  transition: .4s;
-  border-radius: 34px;
-}
+    .dark-mode-switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
 
-.dark-mode-slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
-  border-radius: 50%;
-}
+    .dark-mode-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
 
-input:checked + .dark-mode-slider {
-  background-color: #2196F3;
-}
+    .dark-mode-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #f55442; 
+      -webkit-transition: .4s;
+      transition: .4s;
+      border-radius: 34px;
+    }
 
-input:focus + .dark-mode-slider {
-  box-shadow: 0 0 1px #2196F3;
-}
+    .dark-mode-slider:before {
+      content: "";
+      position: absolute;
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      -webkit-transition: .4s;
+      transition: .4s;
+      border-radius: 50%;
+      content: "off";
+      font-size: 12px;
+      text-align: center;
+      color: #f55442;
+      font-weight: bold;
+      line-height: 26px;
+    }
 
-input:checked + .dark-mode-slider:before {
-  -webkit-transform: translateX(26px);
-  -ms-transform: translateX(26px);
-  transform: translateX(26px);
-}
+
+    input:checked + .dark-mode-slider {
+      background-color: #42f593;
+    }
+
+    input:focus + .dark-mode-slider {
+      box-shadow: 0 0 1px #42f593;
+    }
+
+    input:checked + .dark-mode-slider:before {
+      -webkit-transform: translateX(26px);
+      -ms-transform: translateX(26px);
+      transform: translateX(26px);
+      content: "on";
+      color: #42f593;
+    }
 
 </style>
